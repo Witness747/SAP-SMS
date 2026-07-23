@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.models import Student, Course, Task, Event
 from app.routes import students
+from app.routes import students, courses
 
 app = FastAPI(
     title="SAP-SMS API",
@@ -13,6 +14,9 @@ app.include_router(
     students.router
 )
 
+app.include_router(
+    courses.router
+)
 
 @app.get("/")
 def home():
