@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
 from app.models import Student, Course, Task, Event
-from app.routes import students
-from app.routes import students, courses
+from app.routes import students, courses,tasks 
+
 
 app = FastAPI(
     title="SAP-SMS API",
@@ -18,8 +18,17 @@ app.include_router(
     courses.router
 )
 
-@app.get("/")
+app.include_router(
+    tasks.router
+)
+
+@app.get(
+    "/",
+    tags=["System"]
+)
 def home():
+
     return {
         "message": "SAP-SMS Backend Running"
     }
+
