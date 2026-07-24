@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.models import Student, Course, Task, Event
-from app.routes import students, courses, tasks, task_algorithms, events
+from app.routes import students, courses, tasks, task_algorithms, events, event_algorithms
 
 
 app = FastAPI(
@@ -28,6 +28,10 @@ app.include_router(
 
 app.include_router(
     events.router
+)
+
+app.include_router(
+    event_algorithms.router
 )
 
 @app.get(
