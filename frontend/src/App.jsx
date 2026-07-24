@@ -8,50 +8,98 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [events, setEvents] = useState([]);
 
+  const [newTask, setNewTask] = useState({
+    student_id: 4,
+    title: "",
+    priority: "Medium",
+    status: "Pending",
+    due_date: ""
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
 
+
   useEffect(() => {
-
-    const fetchData = async () => {
-
-      try {
-
-        const taskResponse = await API.get("/tasks/");
-        const eventResponse = await API.get("/events/");
-
-
-        console.log("TASK RESPONSE:", taskResponse.data);
-        console.log("EVENT RESPONSE:", eventResponse.data);
-
-
-        // FastAPI PaginationResponse format
-        setTasks(taskResponse.data.data || []);
-
-        setEvents(eventResponse.data.data || []);
-
-
-      } catch (err) {
-
-        console.error(err);
-
-        setError(
-          "Failed to load planner data. Check backend connection."
-        );
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    };
-
 
     fetchData();
 
   }, []);
+
+
+
+  const fetchData = async () => {
+
+    try {
+
+      const taskResponse = await API.get("/tasks/");
+      const eventResponse = await API.get("/events/");
+
+
+      setTasks(taskResponse.data.data || []);
+      setEvents(eventResponse.data.data || []);
+
+
+    } catch (err) {
+
+      console.error(err);
+
+      setError(
+        "Failed to load planner data."
+      );
+
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+
+
+
+  const addTask = async (e) => {
+
+    e.preventDefault();
+
+
+    try {
+
+
+      await API.post("/tasks/", newTask);
+
+
+      alert("Task added successfully");
+
+
+      fetchData();
+
+
+      setNewTask({
+
+        student_id: 4,
+        title: "",
+        priority: "Medium",
+        status: "Pending",
+        due_date: ""
+
+      });
+
+
+
+    } catch(error) {
+
+      console.error(error);
+
+      alert("Failed to add task");
+
+    }
+
+  };
+
 
 
 
@@ -74,23 +122,129 @@ function App() {
 
 
 
-      {loading && (
-        <div className="message">
-          Loading planner data...
-        </div>
-      )}
+      {
+        loading && (
+
+          <div className="message">
+            Loading planner data...
+          </div>
+
+        )
+      }
 
 
 
-      {error && (
-        <div className="error">
-          {error}
-        </div>
-      )}
+      {
+        error && (
+
+          <div className="error">
+            {error}
+          </div>
+
+        )
+      }
 
 
+
+
+
+      {/* ADD TASK FORM */}
+
+      <section className="form-section">
+
+
+        <h2>
+          Add New Task
+        </h2>
+
+
+        <form onSubmit={addTask}>
+
+
+          <input
+            type="text"
+            placeholder="Task title"
+            value={newTask.title}
+            required
+            onChange={(e)=>
+              setNewTask({
+                ...newTask,
+                title:e.target.value
+              })
+            }
+          />
+
+
+
+          <select
+
+            value={newTask.priority}
+
+            onChange={(e)=>
+              setNewTask({
+                ...newTask,
+                priority:e.target.value
+              })
+            }
+
+          >
+
+            <option>
+              High
+            </option>
+
+            <option>
+              Medium
+            </option>
+
+            <option>
+              Low
+            </option>
+
+
+          </select>
+
+
+
+
+          <input
+
+            type="date"
+
+            value={newTask.due_date}
+
+            required
+
+            onChange={(e)=>
+              setNewTask({
+                ...newTask,
+                due_date:e.target.value
+              })
+            }
+
+          />
+
+
+
+          <button>
+            Add Task
+          </button>
+
+
+        </form>
+
+
+      </section>
+
+
+
+
+
+
+      {/* TASK LIST */}
 
       <section>
+
 
         <h2>
           Tasks
@@ -98,19 +252,9 @@ function App() {
 
 
         {
-          tasks.length === 0 && !loading && (
-            <p className="empty">
-              No tasks available
-            </p>
-          )
-        }
-
-
-
-        {
           tasks.map(task => (
 
-            <div 
+            <div
               className="card"
               key={task.task_id}
             >
@@ -121,38 +265,27 @@ function App() {
 
 
               <p>
-                <strong>
-                  Priority:
-                </strong>{" "}
-                {task.priority}
+                Priority: {task.priority}
               </p>
 
 
               <p>
-                <strong>
-                  Status:
-                </strong>{" "}
-                {task.status}
+                Status: {task.status}
               </p>
 
 
               <p>
-                <strong>
-                  Due Date:
-                </strong>{" "}
-                {task.due_date}
+                Due Date: {task.due_date}
               </p>
 
 
               <p>
-                <strong>
-                  Student:
-                </strong>{" "}
-                {task.student?.full_name}
+                Student: {task.student?.full_name}
               </p>
 
 
             </div>
+
 
           ))
         }
@@ -165,23 +298,15 @@ function App() {
 
 
 
+      {/* EVENTS */}
+
+
       <section>
+
 
         <h2>
           Events
         </h2>
-
-
-
-        {
-          events.length === 0 && !loading && (
-            <p className="empty">
-              No events available
-            </p>
-          )
-        }
-
-
 
 
         {
@@ -198,53 +323,28 @@ function App() {
 
 
               <p>
-                <strong>
-                  Type:
-                </strong>{" "}
-                {event.event_type}
+                Type: {event.event_type}
               </p>
 
 
               <p>
-                <strong>
-                  Date:
-                </strong>{" "}
-                {event.event_date}
+                Date: {event.event_date}
               </p>
 
 
               <p>
-                <strong>
-                  Time:
-                </strong>{" "}
-                {event.start_time} - {event.end_time}
-              </p>
-
-
-              <p>
-                <strong>
-                  Location:
-                </strong>{" "}
-                {event.location}
-              </p>
-
-
-              <p>
-                <strong>
-                  Student:
-                </strong>{" "}
-                {event.student?.full_name}
+                Location: {event.location}
               </p>
 
 
             </div>
-
 
           ))
         }
 
 
       </section>
+
 
 
     </div>
