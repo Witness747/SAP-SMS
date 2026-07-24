@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey
 from sqlalchemy.sql import func
 
 from app.database.database import Base
@@ -8,11 +8,13 @@ class Event(Base):
 
     __tablename__ = "events"
 
+
     event_id = Column(
         Integer,
         primary_key=True,
         index=True
     )
+
 
     student_id = Column(
         Integer,
@@ -20,26 +22,44 @@ class Event(Base):
         nullable=False
     )
 
+
     title = Column(
-        String(150),
+        String(255),
         nullable=False
     )
+
 
     event_type = Column(
-        String(50)
+        String(100),
+        nullable=True
     )
+
+
+    event_date = Column(
+        Date,
+        nullable=False
+    )
+
 
     start_time = Column(
-        TIMESTAMP,
+        Time,
         nullable=False
     )
+
 
     end_time = Column(
-        TIMESTAMP,
+        Time,
         nullable=False
     )
 
+
+    location = Column(
+        String(255),
+        nullable=True
+    )
+
+
     created_at = Column(
-        TIMESTAMP,
+        DateTime,
         server_default=func.now()
     )
