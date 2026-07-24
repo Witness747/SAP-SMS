@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from fastapi import Query
 from app.database.dependency import get_db
 from app.models import Student
 from app.schemas.student import StudentCreate, StudentResponse
-
+from app.core.exceptions import not_found_error
+from app.schemas.pagination import PaginationResponse
 
 router = APIRouter(
     prefix="/students",
@@ -12,14 +13,30 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[StudentResponse])
+@router.get("/", response_model=PaginationResponse[StudentResponse])
 def get_students(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
 
-    students = db.query(Student).all()
+    skip = (page - 1) * limit
 
-    return students
+    total = db.query(Student).count()
+
+    students = (
+        db.query(Student)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return PaginationResponse(
+        total=total,
+        page=page,
+        limit=limit,
+        data=students
+    )
 
 
 
@@ -57,9 +74,7 @@ def update_student(
     )
 
     if not existing_student:
-        return {
-            "message": "Student not found"
-        }
+        not_found_error("Student", student_id)
 
     existing_student.full_name = student.full_name
     existing_student.email = student.email
@@ -84,9 +99,7 @@ def delete_student(
     )
 
     if not student:
-        return {
-            "message": "Student not found"
-        }
+        not_found_error("Student", student_id)
 
     db.delete(student)
 

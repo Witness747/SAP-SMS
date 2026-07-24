@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, TIMESTAMP, ForeignKey
 from sqlalchemy.sql import func
-
+from sqlalchemy.orm import relationship
 from app.database.database import Base
 
 
@@ -42,4 +42,9 @@ class Task(Base):
     created_at = Column(
         TIMESTAMP,
         server_default=func.now()
+    )
+
+    student = relationship(
+        "Student",
+        back_populates="tasks"
     )

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from fastapi import Query
+from app.schemas.pagination import PaginationResponse
 from app.database.dependency import get_db
 from app.models import Event
 from app.schemas.event import EventCreate, EventResponse
-
+from app.core.exceptions import not_found_error
 
 router = APIRouter(
     prefix="/events",
@@ -47,15 +48,31 @@ def create_event(
 # READ ALL EVENTS
 @router.get(
     "/",
-    response_model=list[EventResponse]
+    response_model=PaginationResponse[EventResponse]
 )
 def get_events(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
 
-    events = db.query(Event).all()
+    skip = (page - 1) * limit
 
-    return events
+    total = db.query(Event).count()
+
+    events = (
+        db.query(Event)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return PaginationResponse(
+        total=total,
+        page=page,
+        limit=limit,
+        data=events
+    )
 
 
 
@@ -77,10 +94,7 @@ def get_event(
 
 
     if not event:
-        raise HTTPException(
-            status_code=404,
-            detail="Event not found"
-        )
+        not_found_error("Event", event_id)
 
 
     return event
@@ -106,10 +120,7 @@ def update_event(
 
 
     if not event:
-        raise HTTPException(
-            status_code=404,
-            detail="Event not found"
-        )
+        not_found_error("Event", event_id)
 
 
     event.student_id = event_data.student_id
@@ -147,10 +158,7 @@ def delete_event(
 
 
     if not event:
-        raise HTTPException(
-            status_code=404,
-            detail="Event not found"
-        )
+        not_found_error("Event", event_id)
 
 
     db.delete(event)

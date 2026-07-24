@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, TIMESTAMP
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 from app.database.database import Base
 
@@ -32,4 +33,27 @@ class Student(Base):
     created_at = Column(
         TIMESTAMP,
         server_default=func.now()
+    )
+
+
+    # Relationships
+
+    tasks = relationship(
+        "Task",
+        back_populates="student",
+        cascade="all, delete"
+    )
+
+
+    courses = relationship(
+        "Course",
+        back_populates="student",
+        cascade="all, delete"
+    )
+
+
+    events = relationship(
+        "Event",
+        back_populates="student",
+        cascade="all, delete"
     )

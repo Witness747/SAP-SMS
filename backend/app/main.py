@@ -1,13 +1,26 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.config import settings
 
 from app.models import Student, Course, Task, Event
 from app.routes import students, courses, tasks, task_algorithms, events, event_algorithms
 
 
 app = FastAPI(
-    title="SAP-SMS API",
+    title=settings.APP_NAME,
     description="Student Academic Planner and Student Management System",
-    version="1.0.0"
+    version=settings.APP_VERSION
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+    settings.FRONTEND_URL
+],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(

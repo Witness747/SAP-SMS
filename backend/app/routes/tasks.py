@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from fastapi import Query
+from app.schemas.pagination import PaginationResponse
 from app.database.dependency import get_db
 from app.models import Task
 from app.schemas.task import TaskCreate, TaskResponse
-
+from app.core.exceptions import not_found_error
 
 router = APIRouter(
     prefix="/tasks",
@@ -12,14 +13,30 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[TaskResponse])
+@router.get("/", response_model=PaginationResponse[TaskResponse])
 def get_tasks(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
 
-    tasks = db.query(Task).all()
+    skip = (page - 1) * limit
 
-    return tasks
+    total = db.query(Task).count()
+
+    tasks = (
+        db.query(Task)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return PaginationResponse(
+        total=total,
+        page=page,
+        limit=limit,
+        data=tasks
+    )
 
 
 
@@ -59,9 +76,7 @@ def update_task(
     )
 
     if not existing_task:
-        return {
-            "message": "Task not found"
-        }
+        not_found_error("Task", task_id)
 
     existing_task.title = task.title
     existing_task.priority = task.priority
@@ -87,9 +102,10 @@ def delete_task(
     )
 
     if not task:
-        return {
-            "message": "Task not found"
-        }
+        not_found_error(
+            "Task",
+            task_id
+        )
 
     db.delete(task)
 

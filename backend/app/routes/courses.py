@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from fastapi import Query
+from app.schemas.pagination import PaginationResponse
 from app.database.dependency import get_db
 from app.models import Course
 from app.schemas.course import CourseCreate, CourseResponse
-
+from app.core.exceptions import not_found_error
 
 router = APIRouter(
     prefix="/courses",
@@ -12,14 +13,30 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[CourseResponse])
+@router.get("/", response_model=PaginationResponse[CourseResponse])
 def get_courses(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
 
-    courses = db.query(Course).all()
+    skip = (page - 1) * limit
 
-    return courses
+    total = db.query(Course).count()
+
+    courses = (
+        db.query(Course)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return PaginationResponse(
+        total=total,
+        page=page,
+        limit=limit,
+        data=courses
+    )
 
 
 
@@ -58,9 +75,7 @@ def update_course(
     )
 
     if not existing_course:
-        return {
-            "message": "Course not found"
-        }
+        not_found_error("Course", course_id)
 
     existing_course.course_name = course.course_name
     existing_course.course_code = course.course_code
@@ -85,9 +100,7 @@ def delete_course(
     )
 
     if not course:
-        return {
-            "message": "Course not found"
-        }
+        not_found_error("Course", course_id)
 
     db.delete(course)
 

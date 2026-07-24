@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-
+from sqlalchemy.orm import relationship
 from app.database.database import Base
 
 
@@ -30,4 +30,10 @@ class Course(Base):
 
     semester = Column(
         Integer
+    )
+
+    # Relationships
+    student = relationship(
+        "Student",
+        back_populates="courses"
     )

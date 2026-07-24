@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Time, DateTime, ForeignKey
 from sqlalchemy.sql import func
-
+from sqlalchemy.orm import relationship
 from app.database.database import Base
 
 
@@ -62,4 +62,10 @@ class Event(Base):
     created_at = Column(
         DateTime,
         server_default=func.now()
+    )
+
+    # Relationships
+    student = relationship(
+        "Student",
+        back_populates="events"
     )

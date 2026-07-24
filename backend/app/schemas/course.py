@@ -1,23 +1,38 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class CourseBase(BaseModel):
+class StudentNested(BaseModel):
+
+    student_id: int
+    full_name: str
+    email: str
+    program: str | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+
+
+
+class CourseCreate(BaseModel):
+
+    student: StudentNested
 
     course_name: str
-    course_code: str
+
+    course_code: str | None = None
+
     semester: int
 
 
-class CourseCreate(CourseBase):
-    pass
 
-
-class CourseResponse(CourseBase):
+class CourseResponse(CourseCreate):
 
     course_id: int
-    student_id: int
 
-    class Config:
-        from_attributes = True
+    student: StudentNested
 
-        
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )
